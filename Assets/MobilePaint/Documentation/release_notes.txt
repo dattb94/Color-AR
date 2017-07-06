@@ -1,0 +1,129 @@
+v1.8
+- Added: painting with texture pattern (see scene "scene_MobilePaint_NewUI_PaintWithPattern")
+- Added: public ReadCurrentCustomPattern(), reads current selected pattern texture pixels
+- Added: public GetCanvasAsTexture(), returns current drawing layer (the pixels array) as Texture2D
+- Added: public GetScreenshot(), returns current scene screenshot (without UI) as Texture2D
+- Added: "scene_SaveScreenshotToFile" example scene to test saving screenshots to file
+
+- Fixed: Now you can paint all the way to the image borders also
+
+- Changed: "canDrawOnBlack" is not properly working yet, now disabled on some fill modes
+
+
+v1.71
+- Fixed: Floodfill broken with Touch mode enabled
+
+- Changed: Renamed GetCurrentBrush() to ReadCurrentCustomBrush()
+
+
+v1.7
+- Added: Custom brushes now also use "connectBrushStrokes"
+- Added: "scene_RandomPainter.scene", external script used for painting random spots in the canvas. (See RandomPainter.cs)
+- Added: Option"canDrawOnBlack", if disabled, user cannot draw on black pixel in canvas or mask (to avoid painting on black outlines)
+
+- Fixed: Initialize undo buffer at Awake(), otherwise you get black image when undoing empty image
+- Fixed: Undo now catches ClearImage also
+
+- Changed: Old demo scenes are now all converted to use new UI. (old scenes are still in the old/ folder, but might not work anymore)
+- Changed: InitializeEverything(), DrawCircle(), textureNeedsUpdate are now public, so external scripts can call them directly
+ 
+
+v1.6
+- Added: New public variable setting "targetTexture" (Defaults to "_MainTex"). 
+         Can be used for setting the target texture on the current material/shader
+- Added: Full screen quad now calculates normals & tangents (to allow using normal/height mapped shaders)         
+- Added: New material "CanvasWithMaskAndAlpha" with shader "CanvasMaskAndAlpha". Top layer mask and bottom layer with transparency
+- Added: New example scene "scene_MobilePaint_EraseCanvasAlphaWithMask" using the shader above ^
+- Added: New example scene "scene_MobilePaint_NewUI_BumpMap", paints into bumpmap texture. (targetTexture = _BumpMap) 
+- Added: New example scene "scene_MobilePaint_NewUI_HeightMap", paints into parallaxmap texture. (targetTexture = _ParallaxMap)
+         (not very useful yet, since the mesh doesnt have enough vertices to raise..)
+- Added: New example scene "scene_MobilePaint_NewUI_EraseTopLayer", you can erase toplayer to reveal background image (bottom layer)
+- Added: New example scene for DX11 "scene_MobilePaint_NewUI_Tesselation", you can paint into displacement texture. (targetTexture = _DispTex)
+         *Uses DX11 tesselation shader (must enable DX11 and set buildtarget to webplayer/desktop)
+
+- Fixed: Brush size slider now takes initial brush size value from canvas settings at Start()
+
+
+v1.55
+- Fixed: Overflow error when painting with threshold and current color is "too close" to previous color
+
+
+v1.5
+- Added: Option "UseMaskOnly" : Locking Mask Paint & Fill using mask layer only
+- Added: Option "UseThreshold" : Instead of matching exact colors only, you can adjust matching threshold
+- Added: Layermask dropdown for painting raycast ("default" layer is enabled in examples). Use this to limit painting raycast hitting other objects.
+- Added: New sample scene "scene_MobilePaint_NewUI_UseOnlyMaskForLocking"
+
+- Fixed: If you "painted" outside the canvas and then came back, line was drawn between those points, now "wentOutside" bool is checking for that
+
+- Changed: "enableMouse" is now enabled by default and "enableTouch" is disabled. (for easy testing in editor)
+- Changed: Renamed "useLockMask" to "useLockArea"
+- Changed: Renamed "useMaskOnly" to "useMaskLayerOnly"
+- Changed: Renamed "void LockMaskFill()" to "void LockAreaFill()"
+- Changed: Renamed "void LockMaskFillMaskOnly()" to "void LockAreaFillMaskOnly()"
+
+- Known issues: Lots of duplicate code in the different mask filling functions, will be cleaned up later
+
+
+v1.4
+- Added: 4.6 New UI sample scene "scene_MobilePaint_NewUI_Default"
+- Added: Public booleans for enableMouse & enableTouch (previously you had to comment them from code)
+
+- Fixed: Y offset was broken (bottom right border didn't use the offset value)
+
+
+v1.3
+- Added: Locking mask painting: Only paint in the area that you first click (determined by floodfill)
+- Added: Demo scene "scene_MobilePaint_PaintAreaLockMask"
+- Added: Option to disable full screen quad creation for canvas (and use existing mesh instead, used in mesh painting)
+- Added: Demo scene "scene_MobilePaint_MeshPaint"
+- Added: Option to disable previous & current brush stroke position connecting (if you paint & move fast, those positions get connected, but it causes problems when painting to custom mesh)
+
+- Updated: Documentation for current version
+
+- Cleaning: Code cleaning
+
+
+v1.2
+- Added: Alpha support for paintcolor (alpha value is now used), "soft / additive painting" now works
+- Added: Public variable "BrushAlphaStrengh", it controls additive brush alpha strength, try 0.1f or 1 or 5 to see the difference
+- Added: Public variable "UseCustomBrushAlpha", true = take alpha from brush, false = use paintcolor alpha value
+- Added: Public variable "useAdditiveColors", true = colors adds up slowly, false = one click will instantly set color to brush or paint color value
+- Added: Initial canvas texture is now taken as an "clearing texture" (as an canvas texture) if assigned in the material maintexture in the inspector
+- Added: Public method "ReadClearingImage()", reads initially set maintexture from canvas (to be used as an clearing image)
+- Added: Public method "DoUndo()", basic undo system (restores one step only)
+- Added: Alpha value slider in the palette (color picker) dialog
+- Added: Demo scene "scene_MobilePaint_EraseCanvasAlpha"
+- Added: Demo scene "scene_MobilePaint_MaskImage"
+
+- Fixed: More guard clauses added (check for null mask texture, check if undo enabled before can do undo etc).
+- Fixed: Custom brush now uses brush colors (instead of paintcolor)
+
+- Changed: Floodfill now uses alpha also to compare fill spread (only RGB was used before)
+- Changed: Public variable "drawMode" is now using DrawMode enum (list is defined at top of MobilePaint.cs)
+- Changed: Renamed public variable "screenSizeAdjust" into "canvasSizeAdjust"
+- Changed: Renamed materials
+- Changed: "maskTex" variable is removed ("maskImage" is used instead, originally maskTex was copied from "maskImage"..)
+- Changed: GUIScaler.cs now runs at Awake() instead of Start()
+- Changed: Sample brushes are now with colors
+- Changed: Renamed original demo scene into "scene_MobilePaint_default"
+
+- Updated: Documentation for current version
+
+- Cleaning: Arranged scripts into different folders
+- Cleaning: Started moving helper methods into separate script Library/PaintTools.cs
+
+
+
+v1.1
+- Added: Floodfill
+- Added: Palette dialog
+- Added: Canvas mask texture layer (and custom material/shader)
+- Added: Minimum brush size
+- Added: Custom brushes (still needs some work..)
+- Added: Custom brush dialog
+- Some other small fixes..
+
+
+V1.0
+- initial release
