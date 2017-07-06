@@ -590,19 +590,7 @@ namespace unitycoder_MobilePaint
 
 		}
 
-		public void HideUI()
-		{
-			if (!useNewUI) return;
-			isUIVisible=false;
-			userInterface.SetActive(isUIVisible);
-		}
-
-		public void ShowUI()
-		{
-			if (!useNewUI) return;
-			isUIVisible=true;
-			userInterface.SetActive(isUIVisible);
-		}
+		
 
 		void UpdateTexture ()
 		{
@@ -2052,12 +2040,10 @@ namespace unitycoder_MobilePaint
 		// returns screenshot as Texture2D
 		public Texture2D GetScreenshot()
 		{
-			HideUI();
 			Camera.main.Render(); // force render to hide UI
 			var image = new Texture2D((int)(texWidth/resolutionScaler), (int)(texHeight/resolutionScaler), TextureFormat.ARGB32, false);
 			image.ReadPixels(new Rect(0, 0, image.width, image.height), 0, 0);
 			image.Apply(false);
-			ShowUI();
 			return image;
 		}
 
