@@ -65,7 +65,7 @@ namespace unitycoder_MobilePaint
 		
 		// for using texture on canvas
 		public bool useMaskImage=false;
-		public Texture2D maskTex;
+		public Texture2D maskTex;// mat na
 		
 		// for using custom brushes
 		public bool useCustomBrushes=true;
@@ -115,7 +115,7 @@ namespace unitycoder_MobilePaint
 		private byte[] maskPixels; // byte array for mask texture
 		private byte[] clearPixels; // byte array for clearing texture
 
-		private Texture2D tex; // texture that we paint into (it gets updated from pixels[] array when painted)
+		public Texture2D tex; // texture that we paint into (it gets updated from pixels[] array when painted)
 		//private Texture2D maskTex; // texture used as a overlay mask
 		private int texWidth;
 		private int texHeight;
@@ -166,7 +166,9 @@ namespace unitycoder_MobilePaint
 
 		public void InitializeEverything() 
 		{
-			
+
+            maskTex = Modules.modelPainting.GetComponent<ModelController>().maskTexture;
+
 			if (enableMouse && enableTouch) Debug.LogWarning("You have enabled both Mouse & Touch, that can cause problems. Also UI hiding won't work..");
 			
 			// calculate scaling ratio for different screen resolutions
@@ -2035,7 +2037,6 @@ namespace unitycoder_MobilePaint
 			image.Apply(false);
 			return image;
 		}
-
 
 		// returns screenshot as Texture2D
 		public Texture2D GetScreenshot()

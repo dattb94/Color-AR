@@ -110,6 +110,9 @@
     <Compile Include="Assets\MobilePaint\Scripts\UserInterface\PaletteDialog.cs" />
     <Compile Include="Assets\MobilePaint\Scripts\UserInterface\ToggleMode.cs" />
     <Compile Include="Assets\Script\MainContain\MainContainController.cs" />
+    <Compile Include="Assets\Script\MainContain\ModelController.cs" />
+    <Compile Include="Assets\Script\Modules.cs" />
+    <Compile Include="Assets\Script\PainContain\PainContainController.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\MobilePaint\Documentation\release_notes.txt" />
