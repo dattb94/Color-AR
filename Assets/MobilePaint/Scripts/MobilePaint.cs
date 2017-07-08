@@ -2104,7 +2104,6 @@ namespace unitycoder_MobilePaint
             _byte = new byte[pixels.Length];
             _byte = pixels;
         }
-        bool saveTex = false;
         public void SaveTexture()
         {
             if (!System.IO.Directory.Exists(Application.persistentDataPath + "/Texture2D"))
@@ -2123,12 +2122,9 @@ namespace unitycoder_MobilePaint
             var bytes = texs.EncodeToPNG();
             System.IO.File.WriteAllBytes(path, bytes);
             Destroy(texs);
+            CameraPainController.saveDone = true;
         }
 
-        public void ButtonSaveClick()
-        {
-            CameraPainController.save = true;
-        }
 
 
 	} // class

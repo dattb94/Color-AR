@@ -11,36 +11,44 @@ public class ModelController : MonoBehaviour {
     // Use this for initialization
     void Start() {
         nameModel = gameObject.name;
-        print(Application.persistentDataPath);
-        //khoi tao main texture.
+        //print(Application.persistentDataPath);
+        ////khoi tao main texture.
 
-        if (!File.Exists(Application.persistentDataPath + "/Texture2D/" + nameModel + ".png"))
-        {
-            mainTexture = new Texture2D(960, 688, TextureFormat.ARGB32, false);
-            for (int i = 0; i < 960; i++)
-                for (int j = 0; j < 688; j++)
-                    mainTexture.SetPixel(i, j, Color.white);
-            mainTexture.Apply();
-        }
-        else {
-            var bytes = File.ReadAllBytes(Application.persistentDataPath + "/Texture2D/" + nameModel + ".png");
-            mainTexture = new Texture2D(960, 688);
-            mainTexture.LoadImage(bytes);
-            mainTexture.Apply();
-        }
-        if (GameObject.Find("MainContainController"))
-        {
+        //if (!File.Exists(Application.persistentDataPath + "/Texture2D/" + nameModel + ".png"))
+        //{
+        //    mainTexture = new Texture2D(960, 688, TextureFormat.ARGB32, false);
+        //    for (int i = 0; i < 960; i++)
+        //        for (int j = 0; j < 688; j++)
+        //            mainTexture.SetPixel(i, j, Color.white);
+        //    mainTexture.Apply();
+        //}
+        //else {
+        //    var bytes = File.ReadAllBytes(Application.persistentDataPath + "/Texture2D/" + nameModel + ".png");
+        //    mainTexture = new Texture2D(960, 688);
+        //    //mainTexture.LoadImage(bytes);
+        //    //mainTexture.Apply();
+        //    for (int i = 0; i < 960; i++)
+        //        for (int j = 0; j < 688; j++)
+        //            mainTexture.SetPixel(i, j, Modules.TextureMain(nameModel).GetPixel(i,j));
+        //    mainTexture.Apply();
+        //}
+        ////if (GameObject.Find("MainContainController"))
+        ////{
 
-            renderModel.sharedMaterials[0].mainTexture = this.mainTexture;
-        }
-        else {
-            if (FindObjectOfType<MobilePaint>())
-                renderModel.sharedMaterials[0].mainTexture = FindObjectOfType<MobilePaint>().tex;
-        }
+        ////    renderModel.sharedMaterials[0].mainTexture = this.mainTexture;
+        ////}
+        ////else {
+        ////    if (FindObjectOfType<MobilePaint>())
+        ////        renderModel.sharedMaterials[0].mainTexture = FindObjectOfType<MobilePaint>().tex;
+        ////}
+
+        mainTexture = Modules.TextureMain(nameModel);
+
+
+        renderModel.sharedMaterials[0].mainTexture = Modules.TextureMain(nameModel);
     }
 
     // Update is called once per frame
     void Update() {
-       
     }
 }
