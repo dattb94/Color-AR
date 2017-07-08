@@ -29,7 +29,7 @@ namespace unitycoder_MobilePaint
 		public bool connectBrushStokes=true; // if brush moves too fast, then connect them with line. NOTE! Disable this if you are painting to custom mesh
 
 	//	*** Default settings ***
-		public Color32 paintColor = new Color32(255,0,0,255);
+		public Color32 paintColor = new Color32(0,255,0,255);
 		public float resolutionScaler = 1.0f; // 1 means screen resolution, 0.5f means half the screen resolution
 		public int brushSize = 24; // default brush size
 		public int brushSizeMin = 1; // default min brush size
@@ -143,11 +143,11 @@ namespace unitycoder_MobilePaint
 
 
 
-		void Awake()
-		{
+        void Awake()
+        {
 
-			// reference to 4.6 canvas
-			#if ENABLE_4_6_FEATURES
+            // reference to 4.6 canvas
+#if ENABLE_4_6_FEATURES
 			GameObject go = GameObject.Find("EventSystem");
 			if (go!=null) {
 				eventSystem = go.GetComponent<UnityEngine.EventSystems.EventSystem>();
@@ -155,16 +155,46 @@ namespace unitycoder_MobilePaint
 			}else{
 				useNewUI=false;
 			}
-			#else
-			useNewUI = false;
-			#endif
+#else
+            useNewUI = false;
+#endif
 
-			InitializeEverything();
+            InitializeEverything();
+
+            //khoi tao tex ban dau
+            //tex = new Texture2D(Modules.texturePainting.width, Modules.texturePainting.height);
+            for (int i = 0; i < tex.width; i++)
+                for (int j = 0; j < tex.height; j++)
+                    tex.SetPixel(i, j, Modules.texturePainting.GetPixel(i, j));
+            tex.Apply();
+
+            GetComponent<Renderer>().sharedMaterial.mainTexture = tex;
 
 
-		}
+            int _pixel = 0;
+            for (int y = 0; y < tex.height; y++)
+            {
+                for (int x = 0; x < tex.width; x++)
+                {
+                    Color c = tex.GetPixel(x, y);
 
-		public void InitializeEverything() 
+                    pixels[_pixel] = (byte)(c.r * 255);
+                    pixels[_pixel + 1] = (byte)(c.g * 255);
+                    pixels[_pixel + 2] = (byte)(c.b * 255);
+                    pixels[_pixel + 3] = (byte)(c.a * 255);
+                    _pixel += 4;
+                }
+            }
+
+            tex.LoadRawTextureData(pixels);
+
+            GetComponent<Renderer>().sharedMaterial.mainTexture = tex;
+
+
+
+        }
+
+        public void InitializeEverything() 
 		{
 
             maskTex = Modules.modelPainting.GetComponent<ModelController>().maskTexture;
@@ -235,20 +265,32 @@ namespace unitycoder_MobilePaint
 			// TODO: check if target texture exists
 			if (!GetComponent<Renderer>().material.HasProperty(targetTexture)) Debug.LogError("Fatal error: Current shader doesn't have a property: '"+targetTexture+"'");
 
-			// we have no texture set for canvas
-//			if (renderer.material.mainTexture==null)
-			if (GetComponent<Renderer>().material.GetTexture(targetTexture)==null)
-			{
-				// create new texture
-				tex = new Texture2D(texWidth, texHeight, TextureFormat.RGBA32, false);
-				GetComponent<Renderer>().material.SetTexture(targetTexture, tex);
-				
-				// init pixels array
-				pixels = new byte[texWidth * texHeight * 4];
-				
-			}else{ // we have canvas texture, then use that as clearing texture
-				
-				usingClearingImage = true;
+            // we have no texture set for canvas
+            
+            //GetComponent<Renderer>().material.SetTexture(targetTexture,Modules.texturePainting);
+
+            if (GetComponent<Renderer>().material.GetTexture(targetTexture)==null)
+            {
+
+                usingClearingImage = true;
+                // create new texture
+                tex = new Texture2D(texWidth, texHeight, TextureFormat.RGBA32, false);
+                //tex = Modules.texturePainting;
+
+
+                // init pixels array
+                pixels = new byte[texWidth * texHeight * 4];
+
+                ReadClearingImage();
+                GetComponent<Renderer>().material.SetTexture(targetTexture, tex);
+
+
+            }
+            else{ 
+                // we have canvas texture, then use that as clearing texture
+
+                print("co target");
+                usingClearingImage = true;
 				
 				texWidth = GetComponent<Renderer>().material.GetTexture(targetTexture).width;
 				texHeight = GetComponent<Renderer>().material.GetTexture(targetTexture).height;
@@ -259,6 +301,7 @@ namespace unitycoder_MobilePaint
 				tex = new Texture2D(texWidth, texHeight, TextureFormat.RGBA32, false);
 				
 				// we keep current maintex and read it as "clear pixels array"
+                //
 				ReadClearingImage();
 				
 				GetComponent<Renderer>().material.SetTexture(targetTexture, tex);
@@ -294,6 +337,7 @@ namespace unitycoder_MobilePaint
 			if (customPatterns!=null && customPatterns.Length>0) ReadCurrentCustomPattern();
 
 
+
 		} // InitializeEverything
 
 
@@ -301,17 +345,28 @@ namespace unitycoder_MobilePaint
 		// *** MAINLOOP ***
 		void Update () 
 		{
+            //paintColor= Modules.penColor;
 			if (enableMouse) MousePaint();
 			if (enableTouch) TouchPaint();
 
 			UpdateTexture();
+
+            if (Input.GetKeyDown(KeyCode.S))
+            {
+                tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
+                tex.Apply();
+                var bytes = tex.EncodeToPNG();
+                print(bytes.Length);
+                System.IO.File.WriteAllBytes(Application.dataPath+"/tegiac.png", bytes);
+            }
+
 		} 
 
 
 		void MousePaint ()
 		{
 			// TEST: Undo key for desktop
-			if (Input.GetKeyDown("u"))
+			if (Input.GetKeyDown(KeyCode.U))
 			{
 				DoUndo();
 			}
@@ -324,6 +379,8 @@ namespace unitycoder_MobilePaint
 
 			if (Input.GetMouseButtonDown(0))
 			{
+                
+                //print("Start pain!");
 				#if ENABLE_4_6_FEATURES
 				if (hideUIWhilePainting && isUIVisible) HideUI();
 				#endif
@@ -629,18 +686,6 @@ namespace unitycoder_MobilePaint
 		// main painting function, http://stackoverflow.com/a/24453110
 		public void DrawCircle(int x,int y)
 		{
-			// clamp brush inside texture
-			if (createCanvasMesh) // TEMPORARY FIX: with a custom sphere mesh, small gap in paint at the end, so must disable clamp on most custom meshes
-			{
-				//x = PaintTools.ClampBrushInt(x,brushSize,texWidth-brushSize);
-				//y = PaintTools.ClampBrushInt(y,brushSize,texHeight-brushSize);
-			}
-
-			if (!canDrawOnBlack)
-			{
-//				if (pixels[(texWidth*y+x)*4]==0 && pixels[(texWidth*y+x)*4+1]==0 && pixels[(texWidth*y+x)*4+2]==0 && pixels[(texWidth*y+x)*4+3]!=0) return;
-			}
-
 			int pixel = 0;
 
 			// draw fast circle: 
@@ -657,7 +702,6 @@ namespace unitycoder_MobilePaint
 
 
 					pixel = (texWidth*(y+ty)+x+tx)*4;
-					//pixel = ( texWidth*( (y+ty) % texHeight )+ (x+tx) % texWidth )*4;
 
 					if (useAdditiveColors)
 					{
@@ -673,8 +717,8 @@ namespace unitycoder_MobilePaint
 					}else{ // no additive, just paint my colors
 
 						if (!useLockArea || (useLockArea && lockMaskPixels[pixel]==1))
-						{
-							pixels[pixel] = paintColor.r;
+                        {
+                            pixels[pixel] = paintColor.r;
 							pixels[pixel+1] = paintColor.g;
 							pixels[pixel+2] = paintColor.b;
 							pixels[pixel+3] = paintColor.a;
@@ -1903,17 +1947,19 @@ namespace unitycoder_MobilePaint
 				{
 					for (int x = 0; x < texWidth; x++) 
 					{
-						pixels[pixel] = clearColor.r;
-						pixels[pixel+1] = clearColor.g;
-						pixels[pixel+2] = clearColor.b;
-						pixels[pixel+3] = clearColor.a;
+						pixels[pixel] = 255;
+						pixels[pixel+1] = 255;
+						pixels[pixel+2] = 255;
+						pixels[pixel+3] = 255;
 						pixel += 4;
 					}
 				}
 				tex.LoadRawTextureData(pixels);
 				tex.Apply(false);
 			}
-		} // clear image
+
+
+        } // clear image
 
 
 		public void ClearImageWithImage()
@@ -1952,9 +1998,12 @@ namespace unitycoder_MobilePaint
 		{
 			clearPixels = new byte[texWidth * texHeight * 4];
 
-			// get our current texture into tex
-			tex.SetPixels32(((Texture2D)GetComponent<Renderer>().material.GetTexture(targetTexture)).GetPixels32());
-			tex.Apply(false);
+            // get our current texture into tex
+            //GetComponent<Renderer>().material.SetTexture(targetTexture, tex);
+
+            //tex.SetPixels32(((Texture2D)GetComponent<Renderer>().material.GetTexture(targetTexture)).GetPixels32());
+			//tex.Apply(false);
+            //tex
 
 			int pixel = 0;
 			for (int y = 0; y < texHeight; y++) 
@@ -1971,7 +2020,9 @@ namespace unitycoder_MobilePaint
 					pixel += 4;
 				}
 			}
-		}
+
+            tex.LoadRawTextureData(pixels);
+        }
 
 		void CreateFullScreenQuad()
 		{
@@ -2047,8 +2098,37 @@ namespace unitycoder_MobilePaint
 			image.Apply(false);
 			return image;
 		}
+        
+        public void GetPixels(byte[] _byte)
+        {
+            _byte = new byte[pixels.Length];
+            _byte = pixels;
+        }
+        bool saveTex = false;
+        public void SaveTexture()
+        {
+            if (!System.IO.Directory.Exists(Application.persistentDataPath + "/Texture2D"))
+                System.IO.Directory.CreateDirectory(Application.persistentDataPath + "/Texture2D");
+            string path = Application.persistentDataPath + "/Texture2D/" +
+                Modules.modelPainting.GetComponent<ModelController>().nameModel + ".png";
 
+            Texture2D texs = new Texture2D(FindObjectOfType<MobilePaint>().tex.width, FindObjectOfType<MobilePaint>().tex.height, TextureFormat.ARGB32, false);
 
+            texs = new Texture2D(tex.width, tex.height);
+            for (int i = 0; i < tex.width; i++)
+                for (int j = 0; j < tex.height; j++)
+                    texs.SetPixel(i, j, tex.GetPixel(i, j));
+            texs.Apply();
+            
+            var bytes = texs.EncodeToPNG();
+            System.IO.File.WriteAllBytes(path, bytes);
+            Destroy(texs);
+        }
+
+        public void ButtonSaveClick()
+        {
+            CameraPainController.save = true;
+        }
 
 
 	} // class
